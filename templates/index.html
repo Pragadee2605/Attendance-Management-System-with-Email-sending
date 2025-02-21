@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1f1f1f, #343a40);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e4e4e4;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            color: #f5f5f5;
+        }
+
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: #d1d1d1;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #17a2b8;
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #fff;
+        }
+
+        form input, form button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: white;
+        }
+
+        form input:focus, form button:focus {
+            border-color: #17a2b8;
+            box-shadow: 0 0 10px rgba(23, 162, 184, 0.5);
+        }
+
+        table {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        table th, table td {
+            padding: 15px;
+            text-align: center;
+        }
+
+        table th {
+            background-color: rgba(23, 162, 184, 0.3);
+            color: #fff;
+        }
+
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        canvas {
+            width: 100% !important;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        button {
+            background-color: #17a2b8;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: scale(1);
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Chatbot Styles */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            height: 50px;
+            background-color: #343a40;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: height 0.3s ease-in-out;
+        }
+
+        #chatbot-header {
+            padding: 10px;
+            background-color: #17a2b8;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+        }
+
+        #chatbot-body {
+            padding: 10px;
+            height: calc(100% - 100px);
+            overflow-y: auto;
+            display: none;
+        }
+
+        #chatMessages {
+            height: 200px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            max-width: 90%;
+        }
+
+        .message.user {
+            background-color: #17a2b8;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .message.bot {
+            background-color: #444;
+            color: white;
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Attendance System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/add_student">Add Student</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/view_students">View Students</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/filter_by_date">Filter by Date</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/filter_below_75">Below 75%</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/message">Send Message</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h2 class="text-center">Attendance Dashboard</h2>
+
+        <!-- Date filter form -->
+        <div class="date-filter-container">
+            <form method="GET" action="/" class="mb-4">
+                <input type="date" name="date" value="{{ selected_date or '' }}" class="form-control w-25 d-inline" />
+                <button type="submit" class="btn">Filter by Date</button>
+            </form>
+        </div>
+    </div>
+
+        <div class="canvas-container">
+            <canvas id="barChart" width="400" height="300"></canvas>
+        </div>
+
+    
+
+
+    <!-- Chatbot Container -->
+    <div id="chatbot-container">
+        <div id="chatbot-header">
+            <span style="color: white; font-weight: bold;">Chatbot</span>
+<button id="toggleChat" style="background: none; border: none; color: white; cursor: pointer; width: 30px;">↔</button>
+        </div>
+        <div id="chatbot-body">
+            <div id="chatMessages"></div>
+            <input type="text" id="userInput" placeholder="Enter your message..." style="width: 99%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; margin-top: 10px;">
+            <button id="sendMessage" style="width: 50%; padding: 10px; margin-top: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; display: block; margin: 10px auto 0;">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Extract data passed from Flask
+        const attendanceData = {{ attendance_data | tojson }};
+            
+            const names = attendanceData.map(data => data.name);
+            const percentages = attendanceData.map(data => data.percentage);
+            const totalPresent = attendanceData.filter(data => data.percentage >= 75).length;
+            const totalAbsent = attendanceData.length - totalPresent;
+        
+            // Bar Chart
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        label: 'Attendance (%)',
+                        data: percentages,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        
+            // Pie Chart
+        const chatbot = {
+            messages: [],
+            responses: {
+                'attendance': 'You can view attendance by clicking on "View Students" in the navigation menu.',
+                'below 75': 'To see students with attendance below 75%, click on "Below 75%" in the navigation menu.',
+                'add student': 'To add a new student, click on "Add Student" in the navigation menu.',
+                'filter date': 'You can filter attendance by date using the date picker at the top of the dashboard.',
+                'help': 'I can help you with:\n- Viewing attendance\n- Checking students below 75%\n- Adding new students\n- Filtering by date',
+                'default': 'I apologize, I don\'t understand that query. Try asking about viewing attendance, adding students, or filtering by date.'
+            },
+
+            init() {
+                this.sendButton = document.getElementById('sendMessage');
+                this.userInput = document.getElementById('userInput');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.toggleButton = document.getElementById('toggleChat');
+                this.container = document.getElementById('chatbot-container');
+                this.chatbotBody = document.getElementById('chatbot-body');
+
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+                this.toggleButton.addEventListener('click', () => this.toggleChat());
+            },
+
+            toggleChat() {
+                const currentHeight = this.container.style.height;
+                if (currentHeight === '50px' || currentHeight === '') {
+                    this.container.style.height = '400px';
+                    this.chatbotBody.style.display = 'block';
+                    this.toggleButton.textContent = '↕';
+                } else {
+                    this.container.style.height = '50px';
+                    this.chatbotBody.style.display = 'none';
+                    this.toggleButton.textContent = '↔';
+                }
+            },
+
+            sendMessage() {
+                const message = this.userInput.value.trim();
+                if (message === '') return;
+
+                // Add user message
+                this.addMessage(message, 'user');
+                this.userInput.value = '';
+
+                // Get and add bot response
+                const response = this.getBotResponse(message);
+                setTimeout(() => this.addMessage(response, 'bot'), 500);
+            },
+
+            addMessage(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);
+                messageDiv.textContent = message;
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            },
+
+            getBotResponse(message) {
+                const lowerMessage = message.toLowerCase();
+
+                // Check if the message is a registration number
+                if (/^\d+$/.test(message)) {
+                    this.fetchAttendanceDetails(message);
+                    return 'Fetching attendance details...';
+                }
+
+                // Check for keywords in the message
+                if (lowerMessage.includes('attendance')) return this.responses['attendance'];
+                if (lowerMessage.includes('below 75')) return this.responses['below 75'];
+                if (lowerMessage.includes('add student')) return this.responses['add student'];
+                if (lowerMessage.includes('filter') || lowerMessage.includes('date')) return this.responses['filter date'];
+                if (lowerMessage.includes('help')) return this.responses['help'];
+
+                return this.responses['default'];
+            },
+
+            fetchAttendanceDetails(reg_number) {
+                fetch('/get_attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reg_number: reg_number }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        let responseText = 'Attendance Details:\n';
+                        data.forEach(record => {
+                            responseText += `Date: ${record.date}, Name: ${record.name}, Percentage: ${record.percentage}%, Status: ${record.status}\n`;
+                        });
+                        this.addMessage(responseText, 'bot');
+                    } else {
+                        this.addMessage('No attendance records found for this registration number.', 'bot');
+                    }
+                })
+                .catch(error => {
+                    this.addMessage('Error fetching attendance details.', 'bot');
+                });
+            }
+        };
+
+        // Initialize chatbot when document is loaded
+        document.addEventListener('DOMContentLoaded', () => chatbot.init());
+    </script>
+</body>
+</html>

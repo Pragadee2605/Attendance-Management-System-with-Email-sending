@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Students</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General Reset and Body Styling */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            color: #f5f5f5;
+        }
+
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: #d1d1d1;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #17a2b8;
+        }
+        body {
+            background:  #343a40;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #040404;
+            transition: all 0.3s ease-in-out;
+        }
+        /* Container Styling */
+        .container {
+            margin: 40px auto;
+            max-width: 90%;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Header Styling */
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            color: #0a0a0a;
+            margin-bottom: 25px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        th, td {
+            border: 1px solid #010101;
+            text-align: center;
+            padding: 12px;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Form in Table */
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select {
+            padding: 8px 12px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            padding: 8px 14px;
+            background-color: #28a745;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Back Link Styling */
+        a {
+            display: inline-block;
+            text-decoration: none;
+            color: #007bff;
+            font-size: 1rem;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            table, th, td {
+                font-size: 0.9rem;
+            }
+
+            button, select {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Attendance System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/add_student">Add Student</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/view_students">View Students</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/filter_by_date">Filter by Date</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/filter_below_75">Below 75%</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/message">Send Message</a></li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Students List</h1>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Reg Number</th>
+                <th>Student Name</th>
+                <th>Attendance (%)</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            {% for student in students %}
+            <tr>
+                <td>{{ student[0] }}</td>
+                <td>{{ student[1] }}</td>
+                <td>{{ student[2] }}</td>
+                <td>{{ student[3] }}</td>
+                <td>{{ student[4] }}</td>
+                <td>
+                    <form method="POST" action="/mark_attendance">
+                        <input type="hidden" name="reg_number" value="{{ student[1] }}">
+                        <select name="status">
+                            <option value="Present">Present</option>
+                            <option value="Absent">Absent</option>
+                        </select>
+                        <button type="submit">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <a href="/">Back to Dashboard</a>
+    </div>
+</body>
+</html>
